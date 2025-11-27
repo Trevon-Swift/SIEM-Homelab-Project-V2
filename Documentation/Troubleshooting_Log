@@ -1,0 +1,1123 @@
+# SIEM Homelab Project - Troubleshooting Log
+
+## Document Purpose
+This log captures the troubleshooting process, errors encountered, solutions implemented, and lessons learned during the SIEM homelab build. This documentation demonstrates problem-solving methodology and technical troubleshooting skills valuable for security operations roles.
+
+## Issue #3: Dashboard Accessibility - Network Adapter Configuration
+**Date:** November 1, 2025  
+**Phase:** Dashboard Access After Successful Installation
+
+#### Problem Description
+After successful Wazuh installation on fresh VM (internal SSD, Ubuntu 25.10), initial dashboard access attempt failed from Windows host browser.
+
+**Symptoms:**
+- Wazuh services running correctly (all green/active)
+- VM showing IP address in 10.x.x.x range
+- Unable to access dashboard from Windows host initially
+- Uncertainty about which IP address to use (IPv4 vs IPv6)
+
+#### Troubleshooting Steps Taken
+
+**Step 1: IP Address Identification**
+```bash
+hostname -I
+# or
+ip a
+```
+**Result:** VM showing 10.x.x.x IP address (valid private IP range)
+
+**Question:** Should inet6 (IPv6) address be used instead?  
+**Answer:** No - IPv4 (10.x.x.x) is correct for this lab environment
+
+**Step 2: Network Adapter Verification**
+Checked VirtualBox network settings for VM:
+- Settings → Network → Adapter 1
+- **Discovery:** Adapter was NOT set to Bridged
+- **Configuration:** Set to NAT or Host-Only (incorrect for multi-VM communication)
+
+#### Root Cause
+Network adapter misconfiguration prevented Windows host from reaching VM on the network.
+
+**NAT Mode Limitation:**
+- VM can access internet
+- VM cannot be reached by host or other VMs
+- Creates isolated network environment
+
+**Bridged Adapter Requirement:**
+- VM appears as separate device on network
+- Accessible by host machine
+- Enables VM-to-VM communication (needed for agent deployment)
+
+#### Resolution
+**Action:** Changed network adapter to Bridged mode
+
+**Steps:**
+1. Shut down VM (or changed while running if VirtualBox allows)
+2. VirtualBox Manager → Right-click VM → Settings
+3. Network → Adapter 1 → Attached to: **Bridged Adapter**
+4. Selected host's network adapter (WiFi or Ethernet)
+5. Clicked OK
+6. Started/restarted VM
+7. Accessed dashboard: `https://10.x.x.x` from Windows host browser
+
+**Result:** ✅ SUCCESS - Dashboard accessible, admin login successful
+
+#### Key Learnings
+
+**Network Adapter Modes:**
+- **NAT:** VM isolated, can access internet, cannot be accessed
+- **Bridged:** VM on same network as host, fully accessible
+- **Host-Only:** VM-to-host only, no internet access
+
+**For SIEM Lab Requirements:**
+- Must use Bridged Adapter
+- Enables agent communication from monitored VMs
+- Allows host machine to access dashboard
+- Critical for multi-VM security monitoring scenarios
+
+**IP Address Ranges:**
+All private IP ranges are valid:
+- 10.x.x.x ✅
+- 172.16.x.x - 172.31.x.x ✅
+- 192.168.x.x ✅
+IPv6 (inet6) not needed for this lab
+
+## Issue #4: Lost Admin Credentials
+**Date:** November 12, 2025  
+**Phase:** Pre-Phase 2 (Before Agent Deployment)
+
+#### Problem Description
+Admin credentials for Wazuh dashboard were not saved/accessible after initial successful installation.
+
+**Symptoms:**
+- Wazuh Manager operational and accessible
+- Dashboard login page reachable at `https://10.x.x.x`
+- Admin password unknown/unavailable
+- Unable to proceed with agent deployment without dashboard access
+
+#### Troubleshooting Steps Considered
+
+**Step 1: Credential Recovery Investigation**
+Researched available options for recovering/resetting Wazuh admin credentials.
+
+**Potential Solutions Identified:**
+
+**Option A: Password Reset via Command Line**
+```bash
+# Wazuh includes password management tools
+sudo /usr/share/wazuh-indexer/plugins/opensearch-security/tools/wazuh-passwords-tool.sh
+```
+- Would require understanding Wazuh security architecture
+- Risk of breaking existing configuration
+- Time investment for unfamiliar process
+
+**Option B: Extract Credentials from Installation Logs**
+```bash
+# Check if original credentials stored in logs
+sudo cat /var/log/wazuh-install.log | grep -i password
+sudo cat ~/wazuh-install-files.tar
+```
+- Credentials may have been displayed during install but not captured
+- Installation logs might not retain cleartext passwords
+- Low probability of success
+
+**Option C: Reinstall Wazuh**
+- Clean reinstallation would generate new credentials
+- Would display admin password during install process
+- Guaranteed to resolve access issue
+- Risk: losing current configuration (minimal at this stage)
+
+#### Decision Analysis
+
+**Factors Considered:**
+
+**Current System State:**
+- ✅ Fresh installation (< 24 hours old)
+- ✅ No agents deployed yet
+- ✅ No custom rules created
+- ✅ No configuration changes made
+- ✅ No data to preserve
+- ✅ Only at baseline state
+
+**Time Investment Comparison:**
+- Password reset/recovery: Unknown duration, uncertain success
+- Reinstallation: 30 minutes, guaranteed success
+
+**Risk Assessment:**
+- Password reset: Risk of system misconfiguration
+- Reinstallation: No risk (nothing to lose at this stage)
+
+**Learning Value:**
+- Password reset: Limited learning (one-time issue)
+- Reinstallation: Reinforces installation process, better documentation
+
+#### Resolution Decision: Reinstall
+
+**Rationale:**
+Given that:
+1. No meaningful configuration existed yet
+2. No agents were deployed
+3. Reinstallation would take less time than troubleshooting password reset
+4. Guaranteed to provide fresh, known credentials
+5. Opportunity to document installation process more thoroughly
+
+**Decision:** Perform clean Wazuh reinstallation
+
+#### Implementation Steps
+
+**Step 1: Uninstall Existing Wazuh**
+```bash
+# Stop all services
+sudo systemctl stop wazuh-manager wazuh-indexer wazuh-dashboard
+
+# Remove packages
+sudo apt remove --purge wazuh-manager wazuh-indexer wazuh-dashboard -y
+
+# Remove data directories
+sudo rm -rf /var/ossec
+sudo rm -rf /etc/wazuh-indexer
+sudo rm -rf /usr/share/wazuh-indexer
+sudo rm -rf /var/lib/wazuh-indexer
+sudo rm -rf /usr/share/wazuh-dashboard
+
+# Clean package cache
+sudo apt autoremove -y
+sudo apt clean
+```
+
+**Step 2: Fresh Wazuh Installation**
+```bash
+# Download installer
+curl -sO https://packages.wazuh.com/4.14/wazuh-install.sh
+
+# Run installation
+sudo bash ./wazuh-install.sh -a
+```
+
+**Step 3: Credential Management**
+- ✅ **IMMEDIATELY** copied admin credentials when displayed
+- ✅ Saved to secure password manager
+- ✅ Documented credentials in secure location
+- ✅ Screenshot taken (with password redacted for documentation)
+
+**Result:** ✅ SUCCESS
+- Installation completed in ~30 minutes
+- New admin credentials obtained and secured
+- Dashboard access verified
+- Ready to proceed with Phase 2
+
+#### Key Learnings
+
+### Credential Management Best Practices
+
+**Critical Lesson:** ALWAYS save credentials immediately when displayed
+
+**Implementation:**
+1. **During any installation that generates credentials:**
+   - Screenshot immediately (before terminal scrolls)
+   - Copy/paste to secure note
+   - Save to password manager
+   - Test login before closing terminal
+
+2. **For future installations:**
+   - Have password manager open BEFORE starting
+   - Create dedicated note/entry for the project
+   - Document where credentials are stored
+   - Set reminder to rotate credentials later
+
+3. **Multiple backup locations:**
+   - Password manager (primary)
+   - Encrypted note file (backup)
+   - Screenshot with redacted version for docs
+   - Physical notebook (for homelab - not production)
+
+### Decision-Making Under Uncertainty
+
+**When to Repair vs Reinstall (Refined):**
+
+**Reinstall When:**
+- ✅ System is newly installed (< 48 hours)
+- ✅ Minimal configuration exists
+- ✅ No critical data/agents deployed
+- ✅ Reinstall time < troubleshooting time
+- ✅ Fresh start provides better documentation opportunity
+- ✅ Risk is minimal
+
+**Repair When:**
+- ✅ Significant configuration exists
+- ✅ Multiple agents deployed and reporting
+- ✅ Custom rules and dashboards created
+- ✅ Weeks/months of log data preserved
+- ✅ Clear repair path identified
+- ✅ Downtime must be minimized
+
+**In this case:** Reinstall was absolutely the right choice
+
+### Documentation Discipline
+
+**Lesson Reinforced:** Document critical information immediately
+
+**Applied to this project:**
+- Admin credentials now in 3 secure locations
+- IP address documented
+- VM configuration details recorded
+- Installation commands saved
+- Troubleshooting decisions logged in real-time
+
+## Issue #5: Network Connectivity - Agent Installation
+**Date:** November 17, 2025  
+**Phase:** Phase 2 - Agent Deployment
+
+#### Problem Description
+Multiple network connectivity issues prevented Kali Linux agent installation and communication with Wazuh Manager.
+
+**Symptoms:**
+- `wget` commands timing out when trying to download agent package
+- Kali could ping Wazuh Manager successfully
+- Kali had no internet connectivity via terminal (wget/curl)
+- Firefox browser in Kali could access internet successfully
+- HTTP file transfer between VMs initially failed
+
+#### Root Cause Analysis
+
+**Primary Issue: Dual Network Adapter Configuration Conflict**
+
+During VM inspection, discovered Kali Linux had multiple network adapters configured:
+- **Adapter 1:** Bridged Adapter (correct - for VM-to-VM and internet)
+- **Adapter 2:** Host-Only Adapter (conflicting - blocking internet access)
+
+**Network Behavior Explained:**
+- Ping worked (ICMP allowed on local network via Adapter 1)
+- wget/curl failed (routing conflict between adapters)
+- Firefox worked (used different network stack/routing)
+- VM-to-VM communication intermittent (adapter priority issues)
+
+**Secondary Issue: ICMP vs HTTP Traffic**
+- Ping uses ICMP protocol (worked)
+- wget/curl use HTTP/HTTPS (failed due to routing)
+- This created false impression that network was partially functional
+
+#### Troubleshooting Steps Taken
+
+**Step 1: Connectivity Testing**
+```bash
+# On Kali
+ping -c 4 192.168.1.102  # Wazuh Manager - SUCCESS
+ping -c 4 8.8.8.8        # Google DNS - FAILED
+ping -c 4 google.com     # Domain resolution - FAILED
+wget [package URL]       # Download attempt - TIMEOUT
+```
+
+**Analysis:** Local network functional, internet access blocked
+
+**Step 2: Alternative Download Methods Explored**
+
+**Method A: HTTP File Server Transfer**
+```bash
+# On Wazuh Manager
+python3 -m http.server 8000
+
+# On Kali
+wget http://192.168.1.102:8000/wazuh-agent_4.14.1-1_amd64.deb
+```
+**Result:** Initially failed, connection hung
+
+**Method B: Direct Internet Download**
+```bash
+# On Kali
+wget https://packages.wazuh.com/4.14/apt/pool/main/w/wazuh-agent/wazuh-agent_4.14.1-1_amd64.deb
+```
+**Result:** Timeout errors
+
+**Step 3: Network Adapter Investigation**
+
+Examined VirtualBox network settings for Kali VM:
+- Discovered **Adapter 2 enabled** with Host-Only configuration
+- Adapter 1 correctly set to Bridged
+- Dual adapter configuration creating routing conflicts
+
+**Step 4: Resolution - Network Adapter Reconfiguration**
+
+**Action Taken:**
+1. Accessed VirtualBox → Kali Settings → Network
+2. Checked "Advanced" settings to see all adapters
+3. Found Adapter 2 set to Host-Only Ethernet
+4. Changed Adapter 2 to NAT (to provide internet backup)
+5. Verified Adapter 1 remained Bridged
+
+**Alternative considered but not used:**
+- Disable Adapter 2 entirely
+- Use VirtualBox shared folders for file transfer
+
+**Step 5: Verification After Fix**
+```bash
+# Test internet connectivity
+wget https://packages.wazuh.com/4.14/apt/pool/main/w/wazuh-agent/wazuh-agent_4.14.1-1_amd64.deb
+# SUCCESS - Download completed
+
+# Verify local network still functional
+ping 192.168.1.102
+# SUCCESS - Manager reachable
+```
+
+#### Resolution
+**Network adapter configuration corrected:**
+- **Adapter 1:** Bridged Adapter (VM-to-VM and internet)
+- **Adapter 2:** NAT (internet backup, no conflicts)
+
+**Result:** Full network connectivity restored for agent installation
+
+---
+
+## Issue #6: Wazuh Dashboard Access Failure
+**Date:** November 17, 2025  
+**Phase:** Phase 2 - Post-Agent Installation
+
+#### Problem Description
+Unable to access Wazuh dashboard from Windows host browser despite services reporting as "running."
+
+**Symptoms:**
+- Browser error: `ERR_CONNECTION_REFUSED`
+- Manager IP: 192.168.1.102
+- All services showing "active (running)" in systemctl status
+- Dashboard inaccessible at `https://192.168.1.102`
+
+#### Troubleshooting Steps Taken
+
+**Step 1: Service Status Verification**
+```bash
+sudo systemctl status wazuh-manager    # Active (running)
+sudo systemctl status wazuh-indexer    # Failed/Inactive
+sudo systemctl status wazuh-dashboard  # Active (running)
+```
+
+**Discovery:** Wazuh-indexer service was DOWN despite showing as configured
+
+**Step 2: Indexer Investigation**
+
+**Initial symptom:** Indexer repeatedly failing to start
+
+**Log analysis:**
+```bash
+sudo journalctl -u wazuh-indexer -n 100 --no-pager
+```
+
+**Findings:**
+- Java deprecation warnings (not actual errors)
+- Critical error: `failed to execute systemd-entrypoint: permission denied`
+
+#### Root Cause: File Permission Issues
+
+**The indexer could not execute its startup script due to incorrect file permissions and ownership.**
+
+This typically occurs when:
+- Installation was interrupted or incomplete
+- Files were modified by incorrect user
+- System updates changed ownership
+- Filesystem issues during installation
+
+#### Resolution: Permission Reset and Service Recovery
+
+**Step 1: Fix File Ownership**
+```bash
+# Reset ownership to wazuh-indexer user
+sudo chown -R wazuh-indexer:wazuh-indexer /var/lib/wazuh-indexer
+sudo chown -R wazuh-indexer:wazuh-indexer /var/log/wazuh-indexer
+sudo chown -R wazuh-indexer:wazuh-indexer /etc/wazuh-indexer
+sudo chown -R wazuh-indexer:wazuh-indexer /usr/share/wazuh-indexer
+```
+
+**Step 2: Fix File Permissions**
+```bash
+# Make startup scripts executable
+sudo chmod 755 /usr/share/wazuh-indexer/bin/systemd-entrypoint
+sudo chmod 755 /usr/share/wazuh-indexer/bin/*
+
+# Set directory permissions
+sudo chmod 750 /var/lib/wazuh-indexer
+sudo chmod 750 /var/log/wazuh-indexer
+```
+
+**Step 3: Start Services in Correct Order**
+```bash
+# Start indexer first (data layer)
+sudo systemctl start wazuh-indexer
+sleep 30  # Allow initialization
+
+# Then manager (processing layer)
+sudo systemctl start wazuh-manager
+sleep 10
+
+# Finally dashboard (presentation layer)
+sudo systemctl start wazuh-dashboard
+sleep 10
+```
+
+**Step 4: Verification**
+```bash
+# Verify all services running
+sudo systemctl status wazuh-indexer
+sudo systemctl status wazuh-manager
+sudo systemctl status wazuh-dashboard
+
+# Verify dashboard listening on port 443
+sudo netstat -tlnp | grep 443
+```
+
+**Result:** ✅ All services operational, dashboard accessible at `https://192.168.1.102`
+
+#### Key Learnings
+
+**Service Dependencies:**
+- Wazuh has strict startup order requirements
+- Indexer must initialize before manager can fully function
+- Dashboard depends on both indexer and manager
+
+**Permission Management in Linux:**
+- Service users need correct ownership of their files
+- Execute permissions required on binary/script files
+- Directory permissions affect service ability to write logs/data
+
+**Troubleshooting Methodology:**
+- Java warnings can obscure real errors
+- Always look for "permission denied" or "cannot execute" messages
+- Check file ownership when services fail mysteriously
+- Service startup order matters in complex systems
+
+---
+
+## Issue #7: Agent Installation and Enrollment
+**Date:** November 17, 2025  
+**Phase:** Phase 2 - Kali Agent Deployment
+
+#### Problem Description
+After resolving network issues, encountered duplicate agent name error preventing new agent enrollment.
+
+**Symptoms:**
+```
+ERROR: Duplicate agent name: kali. Unable to add agent (from manager)
+WARNING: Unable to connect to any server
+ERROR: Unable to connect to '[192.168.1.102]:1514/tcp': Transport endpoint is not connected
+```
+
+#### Root Cause
+Previous failed installation attempts left orphaned agent registration in Wazuh Manager database.
+
+#### Resolution
+
+**Step 1: Remove Duplicate Agent**
+
+**Via Dashboard (Used):**
+1. Navigate to: Server management → Endpoints summary
+2. Located existing "kali" agent (status: Never connected)
+3. Selected agent → Delete
+4. Confirmed removal
+
+**Alternative via Command Line:**
+```bash
+# List agents
+sudo /var/ossec/bin/manage_agents -l
+
+# Remove by ID
+sudo /var/ossec/bin/manage_agents -r 001
+
+# Restart manager
+sudo systemctl restart wazuh-manager
+```
+
+**Step 2: Agent Installation**
+
+After network and duplicate agent issues resolved:
+
+```bash
+# On Kali - Install agent package
+sudo WAZUH_MANAGER='192.168.1.102' WAZUH_AGENT_NAME='kali' dpkg -i ./wazuh-agent_4.14.1-1_amd64.deb
+
+# Enable and start agent
+sudo systemctl daemon-reload
+sudo systemctl enable wazuh-agent
+sudo systemctl start wazuh-agent
+
+# Verify connection
+sudo systemctl status wazuh-agent
+sudo tail -20 /var/ossec/logs/ossec.log
+```
+
+**Step 3: Verification**
+
+**Agent logs showed:**
+- ✅ "Successfully connected to the server"
+- ✅ "Valid key received"
+- ✅ Agent enrolled and reporting
+
+**Dashboard showed:**
+- ✅ Agent "kali" listed
+- ✅ Status: Active (green)
+- ✅ Security events flowing
+- ✅ System information displayed
+
+#### Success Criteria Met
+
+✅ Wazuh Manager operational on 192.168.1.102  
+✅ All three services running (manager, indexer, dashboard)  
+✅ Kali Linux agent installed and configured  
+✅ Agent showing as "Active" in dashboard  
+✅ Security events being collected and displayed  
+✅ VM-to-VM communication functional  
+✅ Dashboard accessible from Windows host  
+
+---
+
+## Project Information
+- **Project:** SIEM Homelab with Wazuh 4.14
+- **Start Date:** November 1, 2025
+- **Platform:** VirtualBox on Windows Host
+- **Target OS:** Ubuntu Server 24.04.1 LTS
+
+---
+
+## Issue Timeline & Resolution
+
+### Issue #1: Initial Installation Failure
+**Date:** November 1, 2025  
+**Phase:** Initial Wazuh Manager Deployment
+
+#### Problem Description
+First Wazuh 4.14 installation appeared to complete but services failed to start properly.
+
+**Symptoms:**
+```
+wazuh-indexer: not-found, inactive, dead
+wazuh-manager: loaded, failed, failed
+wazuh-dashboard: status unknown
+```
+
+**Error Messages:**
+- `wazuh_manager.service not found`
+- Services failing to start on system boot
+- Dashboard inaccessible via browser (ERR_CONNECTION_REFUSED)
+
+#### Troubleshooting Steps Taken
+
+**Step 1: Service Status Verification**
+```bash
+sudo systemctl status wazuh-manager
+sudo systemctl status wazuh-indexer
+sudo systemctl status wazuh-dashboard
+```
+**Result:** Services either missing or failed state
+
+**Step 2: Network Connectivity Test**
+- Verified VM network adapter configuration (Bridged vs NAT)
+- Confirmed IP address assignment via `hostname -I`
+- Tested connectivity from Windows host to Ubuntu VM
+**Result:** Network configuration correct, connectivity confirmed
+
+**Step 3: Installation Verification**
+```bash
+dpkg -l | grep wazuh
+```
+**Result:** Packages showed as installed but non-functional
+
+#### Resolution Attempt #1: Reinstallation Over Existing Install
+**Action:** Attempted to reinstall Wazuh using same installer script  
+**Result:** ❌ Failed - Installer detected existing installation, refused to proceed
+
+#### Resolution Attempt #2: Package Removal and Clean Reinstall
+**Action:** Attempted standard package removal
+```bash
+sudo apt remove --purge wazuh-manager wazuh-indexer wazuh-dashboard
+```
+
+**Error Encountered:**
+```
+error processing package wazuh-manager (--remove):
+installed wazuh-manager package pre-removal script subprocess 
+returned error exit status 127
+dpkg: too many errors, stopping
+E: Sub-process /usr/bin/dpkg returned an error code (1)
+```
+
+**Analysis:** Package removal scripts were corrupted, preventing clean uninstall
+
+#### Resolution Attempt #3: Force Package Removal
+**Action:** Attempted force removal bypassing broken scripts
+```bash
+sudo dpkg --remove --force-remove-reinstreq wazuh-manager
+sudo dpkg --purge wazuh-manager
+```
+**Result:** ❌ Failed - Same error persisted, package database corrupted
+
+#### Root Cause Analysis
+Upon further investigation, discovered underlying storage issue:
+
+**Storage Configuration Problem:**
+- Initial VM created with 50GB virtual disk
+- VM stored on external HDD via USB connection
+- External HDD had limited free space (~50-60GB total free)
+
+**Contributing Factors:**
+1. Insufficient disk space allocation (50GB too small for Wazuh)
+2. External HDD performance limitations
+3. Potential USB connection instability during heavy I/O operations
+4. Journal/logging conflicts with external storage
+
+#### Final Resolution: Fresh Installation with Corrected Configuration
+
+**Decision:** Complete VM rebuild with proper specifications
+
+**Action Plan:**
+1. Delete corrupted VM entirely
+2. Create new VM with corrected specifications
+3. Store VM on internal SSD (not external HDD)
+4. Increase virtual disk size to 80GB
+5. Perform clean Wazuh installation
+
+**New VM Specifications:**
+- **Location:** Internal SSD (C:\Users\[username]\VirtualBox VMs\)
+- **RAM:** 4GB
+- **CPUs:** 2
+- **Disk:** 80GB (dynamically allocated)
+- **Network:** Bridged Adapter
+- **OS:** Ubuntu Server 24.04.1 LTS
+
+**Rationale for Changes:**
+- **Internal SSD:** Eliminates USB connection issues, improves I/O performance
+- **80GB disk:** Provides adequate space for Wazuh (~40-50GB) plus growth
+- **Dynamic allocation:** Conserves host disk space (starts ~5GB, grows as needed)
+
+#### Implementation Status
+**Status:** ✅ RESOLVED - Installation successful with corrected configuration
+
+**Final Resolution Steps:**
+1. Deleted corrupted VM from external HDD
+2. Created fresh VM on internal SSD with 80GB disk
+3. Installed Ubuntu Server 25.10 (latest stable release)
+4. Installed Wazuh 4.14 successfully
+5. **Critical: Configured Bridged Adapter** (initially missed this step)
+6. Dashboard accessible from Windows host
+
+**Key Success Factor:** Network adapter configuration (Bridged) combined with internal SSD storage
+
+---
+
+## Issue #2: Dashboard Connectivity (ERR_CONNECTION_REFUSED)
+**Date:** November 1, 2025  
+**Phase:** Initial Access Attempt
+
+#### Problem Description
+Unable to access Wazuh dashboard from Windows host browser despite services appearing to run.
+
+**Symptoms:**
+- Browser error: `ERR_CONNECTION_REFUSED`
+- Unable to reach `https://[VM-IP]` from host machine
+
+#### Troubleshooting Steps Taken
+
+**Step 1: Service Status Verification**
+```bash
+sudo systemctl status wazuh-dashboard
+```
+**Result:** Service status unclear due to underlying installation issues
+
+**Step 2: Network Configuration Check**
+- Verified VM network adapter set to Bridged (not NAT)
+- Confirmed IP address assignment
+- Tested ping from host to VM
+**Result:** Network connectivity functional
+
+**Step 3: Port Verification**
+```bash
+sudo netstat -tlnp | grep 443
+```
+**Result:** Could not verify due to service failures
+
+**Step 4: Firewall Check**
+```bash
+sudo ufw status
+```
+**Result:** Firewall not active (not the issue)
+
+#### Root Cause
+Connection refused error was symptom of underlying installation failure (Issue #1). Services were not actually running properly despite initial appearance.
+
+#### Resolution
+Will be resolved by Issue #1 resolution (clean installation on proper storage)
+
+---
+
+## Key Lessons Learned
+
+### Technical Lessons
+
+#### 1. Storage Location Matters
+**Learning:** VirtualBox VMs perform significantly better on internal SSDs vs external HDDs
+- External HDD via USB introduces latency and potential connection issues
+- Heavy I/O operations (like Wazuh installation) can overwhelm USB connections
+- Journal/logging systems may fail on external storage during intense writes
+
+**Best Practice:** Always store active VMs on internal storage when possible
+
+**Resolution Confirmed:** Moving from external HDD to internal SSD resolved installation failures completely
+
+#### 2. Disk Space Planning
+**Learning:** Initial 50GB allocation was insufficient for enterprise SIEM deployment
+- Wazuh requires ~15GB for installation
+- Indexing and log storage require additional 20-30GB
+- OS overhead and updates need buffer space
+
+**Best Practice:** Allocate 80GB+ for SIEM VMs, use dynamic allocation to conserve host space
+
+**Resolution Confirmed:** 80GB dynamic allocation provided adequate space for successful installation
+
+#### 3. Network Adapter Configuration is Critical
+**Learning:** Network adapter mode directly impacts VM accessibility and functionality
+- **NAT mode:** Isolates VM, prevents host and inter-VM communication
+- **Bridged mode:** Required for security monitoring labs with multiple VMs
+- Easy to overlook during initial setup but critical for functionality
+
+**Common Mistake:** Forgetting to set Bridged Adapter after VM creation
+
+**Best Practice:** 
+- Always verify network adapter configuration before installing services
+- Set to Bridged immediately after VM creation
+- Test connectivity from host before proceeding with installations
+
+**Resolution Confirmed:** Setting Bridged Adapter immediately resolved dashboard accessibility
+
+#### 4. Operating System Version Flexibility
+**Learning:** Latest Ubuntu Server release (25.10) worked successfully with Wazuh 4.14
+- Initial plan was Ubuntu 24.04.1 LTS
+- Ubuntu 25.10 proved compatible and successful
+- Sometimes newer isn't a problem if packages support it
+
+**Note:** LTS versions generally preferred for production, but latest release worked fine for lab environment
+
+#### 3. Package Management Recovery
+**Learning:** Corrupted package installations can create cascading failures
+- Standard removal procedures may fail if installation scripts are corrupted
+- Force removal options (`--force-remove-reinstreq`) may not always work
+- Sometimes starting fresh is faster than repairing broken installations
+
+**Best Practice:** When package database is corrupted and force removal fails, rebuild VM
+
+#### 4. Network Configuration
+**Learning:** NAT vs Bridged adapter distinction is critical for multi-VM communication
+- NAT: VM can access internet but other VMs cannot reach it
+- Bridged: VM appears as separate machine on network, enables VM-to-VM communication
+
+**Best Practice:** Use Bridged adapter for security lab environments requiring inter-VM traffic
+
+### Problem-Solving Methodology Lessons
+
+#### 1. Systematic Troubleshooting Approach
+- ✅ Start with service verification
+- ✅ Check network connectivity
+- ✅ Verify configurations
+- ✅ Examine logs for errors
+- ✅ Test individual components
+- ✅ Identify root cause before attempting fixes
+
+#### 2. When to Rebuild vs Repair
+**Rebuild When:**
+- Installation is completely corrupted
+- Multiple cascading failures present
+- Time to rebuild < time to troubleshoot
+- No critical data/configuration to preserve
+- VM is newly created (< 48 hours old)
+
+**Repair When:**
+- Single isolated issue
+- Clear path to resolution
+- Significant configuration exists
+- Data preservation required
+
+**Decision:** In this case, rebuild was correct choice (VM was 1 day old, no custom configs, multiple failures)
+
+#### 3. Documentation During Troubleshooting
+- Real-time logging captures decision-making process
+- Error messages should be copied exactly as displayed
+- Each troubleshooting step should be documented before moving to next
+- Failed attempts are as valuable as successful ones for learning
+
+---
+
+## Screenshot & Documentation Strategy
+
+### What to Screenshot (Avoid Redundancy)
+
+#### One-Time Screenshots (Take Once)
+✅ **VirtualBox VM Settings**
+- System tab (RAM/CPU allocation) - ONE screenshot
+- Network tab (Bridged adapter configuration) - ONE screenshot
+- Storage tab (disk allocation) - ONE screenshot
+
+✅ **Ubuntu Installation**
+- Initial boot screen - OPTIONAL (not critical)
+- Installation summary screen - ONCE
+- First successful login - ONCE
+
+✅ **Wazuh Installation**
+- Installation command execution start - ONCE
+- Admin credentials display (CRITICAL - redact password in shared docs) - ONCE
+- "Installation finished" message - ONCE
+
+✅ **Dashboard Access**
+- First successful dashboard login - ONCE
+- Dashboard overview/home screen - ONCE
+
+#### Repeated Process Screenshots (Take ONCE, Reference Multiple Times)
+❌ **Do NOT Screenshot Every Time:**
+- Running `sudo systemctl status` commands (document command in text instead)
+- Every package installation step
+- Every `apt update` command
+- Every configuration file edit (show final config only)
+- Multiple failed login attempts to dashboard
+
+✅ **Do Screenshot Each Unique Error:**
+- Different error messages (each unique error once)
+- Critical failures (corrupted packages, disk space issues)
+
+#### What to Document in Text Only (No Screenshots Needed)
+📝 **Commands and Outputs:**
+- Service status checks → Copy/paste text output
+- Network configuration commands → Text output sufficient
+- Package queries → Text output sufficient
+- Log file excerpts → Copy relevant lines
+
+📝 **Troubleshooting Steps:**
+- Decision rationale → Written explanation
+- Commands attempted → Code blocks with results
+- Why specific approach chosen → Written analysis
+
+### Documentation Organization
+
+```
+screenshots/
+├── 01-vm-setup/
+│   ├── vm-settings-system.png          (ONCE)
+│   ├── vm-settings-network.png         (ONCE)
+│   └── vm-settings-storage.png         (ONCE)
+│
+├── 02-ubuntu-install/
+│   ├── ubuntu-install-summary.png      (ONCE)
+│   └── first-login.png                 (ONCE)
+│
+├── 03-wazuh-install/
+│   ├── install-command.png             (ONCE)
+│   ├── install-complete.png            (ONCE)
+│   └── admin-credentials.png           (ONCE - redacted)
+│
+├── 04-dashboard-access/
+│   ├── first-dashboard-login.png       (ONCE)
+│   └── dashboard-overview.png          (ONCE)
+│
+└── 05-troubleshooting/
+    ├── error-service-failure.png       (unique errors only)
+    ├── error-package-removal.png       (unique errors only)
+    └── error-disk-space.png            (unique errors only)
+```
+
+### Screenshot Best Practices
+
+**DO:**
+- ✅ Capture full screen showing context (terminal, browser, VirtualBox window)
+- ✅ Include timestamps when visible
+- ✅ Show command prompts to prove you executed commands
+- ✅ Capture error messages in full
+- ✅ Label screenshots with descriptive filenames
+
+**DON'T:**
+- ❌ Screenshot every single command execution
+- ❌ Take multiple screenshots of identical processes
+- ❌ Screenshot common/expected outputs (successful apt updates, etc.)
+- ❌ Include sensitive information (passwords, unless redacted)
+- ❌ Screenshot loading screens or "waiting" states
+
+---
+
+## Commands Reference
+
+### Diagnostic Commands (Use as Needed, Document Output in Text)
+
+```bash
+# System resource check
+free -h                    # RAM usage
+df -h                      # Disk space
+hostname -I                # IP address
+
+# Service management
+sudo systemctl status [service-name]
+sudo systemctl start [service-name]
+sudo systemctl stop [service-name]
+sudo systemctl restart [service-name]
+
+# Package management
+dpkg -l | grep wazuh       # List installed Wazuh packages
+apt list --installed       # All installed packages
+
+# Network diagnostics
+ip a                       # All network interfaces
+ping [ip-address]          # Test connectivity
+sudo netstat -tlnp         # Listening ports
+
+# Log analysis
+sudo journalctl -u wazuh-manager -n 50    # Last 50 log entries
+sudo tail -f /var/ossec/logs/ossec.log    # Real-time Wazuh logs
+```
+
+### Recovery Commands (Document When Used)
+
+```bash
+# Service recovery
+sudo systemctl daemon-reload
+sudo systemctl reset-failed
+
+# Package cleanup
+sudo apt clean
+sudo apt autoremove
+sudo dpkg --configure -a
+
+# Force package removal (when standard removal fails)
+sudo dpkg --remove --force-remove-reinstreq [package-name]
+sudo dpkg --purge [package-name]
+
+# Complete Wazuh removal (nuclear option)
+sudo rm -rf /var/ossec
+sudo rm -rf /etc/wazuh-indexer
+sudo rm -rf /usr/share/wazuh-indexer
+sudo rm -rf /var/lib/wazuh-indexer
+```
+
+---
+
+## Current Status
+
+### ✅ Phase 1 Complete - Wazuh Manager Deployment
+- ✅ Ubuntu Server 25.10 installed on internal SSD
+- ✅ Wazuh 4.14 Manager fully operational
+- ✅ All services running (manager, indexer, dashboard)
+- ✅ Network configured with Bridged Adapter
+- ✅ Dashboard accessible from Windows host
+- ✅ Admin credentials secured
+
+### ✅ Phase 2 Complete - First Agent Deployment
+- ✅ Network connectivity issues resolved (dual adapter conflict)
+- ✅ Wazuh indexer permission issues resolved
+- ✅ Kali Linux agent installed successfully
+- ✅ Agent enrolled and reporting as "Active"
+- ✅ Security events flowing to SIEM
+- ✅ Agent visible in dashboard with system information
+
+### 🚀 Ready for Phase 3: Attack Simulation & Detection
+**Objective:** Generate security events and validate SIEM detection capabilities
+
+**Planned Activities:**
+1. 📋 Network reconnaissance (Nmap scans)
+2. 📋 Brute force attacks (SSH, authentication attempts)
+3. 📋 File integrity monitoring tests
+4. 📋 Analyze SIEM alerts and detections
+5. 📋 Document attack scenarios and detection rates
+
+**Current Infrastructure:**
+- Wazuh Manager: 192.168.1.102 (monitoring)
+- Kali Linux Agent: Active and reporting (attack platform)
+- Ready for security event generation
+
+---
+
+---
+
+## Portfolio Value
+
+### Skills Demonstrated Through This Troubleshooting
+
+**Technical Skills:**
+- Linux system administration and troubleshooting
+- Package management and dependency resolution
+- Storage configuration and performance optimization
+- Network diagnostics and connectivity testing
+- Service management and systemd operations
+
+**Problem-Solving Skills:**
+- Systematic diagnostic approach
+- Root cause analysis methodology
+- Decision-making under uncertainty (when to repair vs rebuild)
+- Resource constraint management (disk space planning)
+
+**Professional Skills:**
+- Real-time documentation of technical processes
+- Clear communication of complex technical issues
+- Learning from failures and adapting approach
+- Time management (recognizing when to pivot strategies)
+
+### Resume Bullet Point (If Asked About Challenges)
+*"Diagnosed and resolved complex SIEM deployment issues including corrupted package installations and storage configuration problems, demonstrating systematic troubleshooting methodology and technical problem-solving skills"*
+
+---
+
+## References & Resources Used
+
+- Wazuh Official Documentation: https://documentation.wazuh.com/
+- Ubuntu Server Documentation: https://ubuntu.com/server/docs
+- VirtualBox User Manual: https://www.virtualbox.org/manual/
+- Linux System Administration resources
+- Community troubleshooting forums
+
+## Summary: Complete Resolution Path
+
+### Initial Problem
+- Wazuh installation failing with corrupted packages
+- Services not starting
+- Dashboard inaccessible
+- Storage on external HDD with limited space
+
+### Root Causes Identified
+1. **Storage Issue:** External HDD via USB insufficient for heavy I/O operations
+2. **Disk Space:** 50GB too small for Wazuh deployment
+3. **Network Configuration:** Bridged Adapter not configured (discovered post-install)
+
+### Final Working Configuration
+- **Storage:** Internal SSD (C:\Users\[username]\VirtualBox VMs\)
+- **Disk Size:** 80GB (dynamically allocated)
+- **RAM:** 4GB
+- **CPUs:** 2
+- **Network:** Bridged Adapter (critical!)
+- **OS:** Ubuntu Server 25.10
+- **SIEM:** Wazuh 4.14
+
+### Resolution Timeline
+- **Attempt 1:** External HDD, 50GB, Ubuntu 24.04.1 → ❌ Failed (disk space/storage issues)
+- **Attempt 2:** Repair corrupted packages → ❌ Failed (package database corrupted)
+- **Attempt 3:** Internal SSD, 80GB, Ubuntu 25.10 → ✅ Success
+- **Final Step:** Configure Bridged Adapter → ✅ Dashboard accessible
+
+### Key Success Factors
+1. ✅ Internal SSD storage
+2. ✅ Adequate disk space (80GB)
+3. ✅ Bridged network adapter
+4. ✅ Fresh installation (no corrupted packages)
+5. ✅ Systematic troubleshooting approach
+
+### Time Investment
+- Total troubleshooting: ~2 hours
+- Failed installations: 2 attempts
+- Successful installation: 45 minutes
+- **Total project time:** ~3 hours from start to working dashboard
+
+### Value Gained
+- Deep understanding of VM storage performance requirements
+- Network adapter configuration for multi-VM environments
+- Package management and system recovery experience
+- Problem-solving methodology refinement
+- Comprehensive documentation of real-world challenges
+
+---
+
+**Last Updated:** November 1, 2025 - Dashboard Access Successful  
+**Status:** ✅ PHASE 1 COMPLETE - Ready for Phase 2 (Agent Deployment)  
+**Installation:** Fully operational Wazuh 4.14 SIEM on Ubuntu 25.10
+
+---
+
+*This troubleshooting log demonstrates real-world problem-solving in security infrastructure deployment. Failures and recovery processes are as valuable as successes in demonstrating technical competence.*
