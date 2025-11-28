@@ -34,19 +34,19 @@ This project demonstrates enterprise-grade Security Information and Event Manage
 │                    Host Machine                         │
 │                  Windows + VirtualBox                   │
 │                                                         │
-│  ┌──────────────┐  ┌──────────────┐                    │
-│  │   Wazuh      │  │  Kali Linux  │                    │
-│  │   Manager    │◄─┤   (Agent)    │                    │
-│  │  (Ubuntu)    │  │              │                    │
-│  │  SIEM Core   │  │ Red Team     │                    │
-│  │  192.168.1   │  │ Attack       │                    │
-│  │  .102        │  │ Platform     │                    │
-│  └──────────────┘  └──────────────┘                    │
-│         │                  │                            │
-│         │                  │                            │
-│         └──────────────────┘                            │
-│              Monitoring &                               │
-│           Attack Simulation                             │
+│          ┌──────────────┐  ┌──────────────┐             │
+│          │   Wazuh      │  │  Kali Linux  │             │
+│          │   Manager    │◄─┤   (Agent)    │             │
+│          │  (Ubuntu)    │  │              │             │
+│          │  SIEM Core   │  │ Red Team     │             │ 
+│          │  192.168.1   │  │ Attack       │             │ 
+│          │  .102        │  │ Platform     │             │
+│          └──────────────┘  └──────────────┘             │
+│                 │                  │                    │
+│                 │                  │                    │
+│                 └──────────────────┘                    │
+│                 Monitoring &                            │
+│              Attack Simulation                          │
 └─────────────────────────────────────────────────────────┘
 ```
 
