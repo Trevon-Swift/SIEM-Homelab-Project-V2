@@ -216,7 +216,6 @@ sudo ./fim-test.sh
 ### Official Documentation
 - [Wazuh Documentation](https://documentation.wazuh.com/)
 - [Wazuh Agent Deployment](https://documentation.wazuh.com/current/installation-guide/wazuh-agent/index.html)
-- [Custom Rules Guide](https://documentation.wazuh.com/current/user-manual/ruleset/custom.html)
 
 ### MITRE ATT&CK
 - [MITRE ATT&CK Framework](https://attack.mitre.org/)
