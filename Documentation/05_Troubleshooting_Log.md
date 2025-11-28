@@ -167,3 +167,5 @@ sudo chown -R wazuh-indexer:wazuh-indexer /etc/wazuh-indexer
 # Reset Execution Permissions
 sudo chmod 755 /usr/share/wazuh-indexer/bin/systemd-entrypoint
 
+```
+**Result:** ✅ RESOLVED - Services restarted successfully.
