@@ -1,12 +1,9 @@
 # Project Documentation
 
-This directory contains the detailed, multi-part documentation for the SIEM Homelab Project. Each file corresponds to a major phase of the project.
+This directory contains the detailed, multi-part documentation for the SIEM Homelab Project. Each file corresponds to a major phase of the project or a key area of documentation.
 
-## Planned Documents
+## Documentation Files
 
-1.  `01_Virtual_Machine_Setup.md`
-2.  `02_Wazuh_Manager_Installation.md`
-3.  `03_Agent_Deployment.md`
-4.  `04_Security_Monitoring_and_Alerting.md`
-
-The documentation files will be created/moved in the next phase.
+1.  `04_Attack_Scenarios_and_Detection.md`: Detailed documentation of the attack simulations performed and the corresponding detection results within the SIEM.
+2.  `05_Additional_Content.md`: Additional project-related content provided by the user.
+3.  `06_Troubleshooting_Log.md`: A comprehensive log of all issues encountered during the project, the steps taken to resolve them, and the key lessons learned.
