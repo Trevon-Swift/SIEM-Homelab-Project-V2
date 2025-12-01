@@ -38,15 +38,15 @@ This project demonstrates enterprise-grade Security Information and Event Manage
 │          │   Wazuh      │  │  Kali Linux  │             │
 │          │   Manager    │◄─┤   (Agent)    │             │
 │          │  (Ubuntu)    │  │              │             │
-│          │  SIEM Core   │  │ Red Team     │             │ 
-│          │  192.168.1   │  │ Attack       │             │ 
-│          │  .102        │  │ Platform     │             │
+│          │  SIEM Core   │  │  Red Team    │             │ 
+│          │  192.168.1   │  │   Attack     │             │ 
+│          │  .102        │  │  Platform    │             │
 │          └──────────────┘  └──────────────┘             │
 │                 │                  │                    │
 │                 │                  │                    │
 │                 └──────────────────┘                    │
-│                 Monitoring &                            │
-│              Attack Simulation                          │
+│                     Monitoring &                        │
+│                  Attack Simulation                      │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -269,7 +269,7 @@ This project demonstrates enterprise-grade Security Information and Event Manage
 All detailed documentation, troubleshooting logs, and visual evidence (screenshots) are organized in the following directories:
 
 - **Documentation:** Detailed guides for each project phase and comprehensive attack scenario documentation.
-- **Assets/Screenshots:** All 27 visual evidence files, consistently named and categorized by project phase.
+- **Assets/Screenshots:** All screenshots consistently named and categorized by project phase.
 
 ---
 
@@ -278,3 +278,4 @@ All detailed documentation, troubleshooting logs, and visual evidence (screensho
 **Author:** Trevon Swift  
 **GitHub:** [Trevon-Swift](https://github.com/Trevon-Swift)  
 **Repository:** [SIEM-Homelab-Project-V2](https://github.com/Trevon-Swift/SIEM-Homelab-Project-V2)
+**Email:** [Trevon Swift](https://trevon.swift@protonmail.com)
