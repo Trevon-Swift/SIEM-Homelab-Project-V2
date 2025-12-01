@@ -132,26 +132,19 @@ This project demonstrates enterprise-grade Security Information and Event Manage
 ## 📂 Repository Structure
 
 ```
-SIEM-Homelab-Project-V2/
-│
-├── README.md                              # Project overview (this file)
-├── Documentation/
-│   ├── 04_Attack_Scenarios_and_Detection.md  # Detailed attack simulations and detections
-│   ├── 05_Additional_Content.md               # Additional project content
-│   ├── 06_Troubleshooting_Log.md              # Complete troubleshooting documentation
-│   └── README.md                              # Documentation index
-│
-├── Assets/
-│   ├── Screenshots/                       # All visual evidence (27 organized screenshots)
-│   │   ├── 01_01_Ubuntu_VM_RAM_CPU_Allocation.png
-│   │   ├── 02_01_Wazuh_Install_Script_Output.png
-│   │   ├── 03_01_Agent_Deployment_Wazuh_UI_Command.png
-│   │   ├── 04_01_Kali_Agent_Attack_Simulation.png
-│   │   └── ... (and 23 more organized screenshots)
-│   └── README.md                          # Assets documentation
-│
-└── Code/
-    └── README.md                          # Code and configuration documentation
+├── 📁 Assets/
+│ └── 📁 Screenshots/
+├── 📁 Configurations/
+│ ├── README.md
+│ ├── commands-used.md
+│ ├── kali-agent.conf
+│ └── ossec.conf
+├── 📁 Documentation/
+│ ├── attack_scenarios_and_detection.md
+│ ├── troubleshooting_log.md
+│ └── troubleshooting_log_cont.md
+├── LICENSE
+└── README.md
 ```
 
 ---
