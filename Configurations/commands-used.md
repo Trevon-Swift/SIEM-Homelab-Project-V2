@@ -1,4 +1,4 @@
-# Commands Used in SIEM Homelab
+# Key Commands Used in SIEM Homelab
 
 This document contains the commands executed during the project.
 
