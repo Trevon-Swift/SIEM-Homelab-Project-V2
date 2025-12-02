@@ -9,7 +9,7 @@ This directory contains Wazuh configuration files and a reference of commands us
 ```
 configurations/
 ├── README.md              # This file
-├── commands-used.md       # Commands executed during project
+├── commands-used.md       # Key Commands executed during project
 ├── kali-agent.conf        # Kali Linux agent configuration
 └── ossec.conf             # Wazuh Manager configuration
 ```
