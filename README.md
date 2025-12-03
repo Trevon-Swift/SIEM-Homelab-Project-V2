@@ -14,6 +14,7 @@ The objective was to engineer a pipeline that ingests logs, detects anomalies, a
 
 ## 🏗️ Architecture
 
+![Network Diagram](Assets/Screenshots/Network_Diagram.png)
 
 
 ### The Infrastructure
@@ -148,7 +149,8 @@ SIEM-Homelab-Project-V2/
 
 ## 🤝 Contact
 
-**Author:** Trevon Swift [LinkedIn](https://linkedin.com/in/trevon-swift-35477b65)] | [Portfolio](https://trevcyber-nw8mwnbm.manus.space/?code=SircLTT4QZepKyYWiSEdYd)
+**LinkedIn:** [Trevon Swift](https://linkedin.com/in/trevon-swift-35477b65) 
+**Portfolio:** [Trevon Swift](https://trevcyber-nw8mwnbm.manus.space/?code=SircLTT4QZepKyYWiSEdYd)
 **GitHub:** [Trevon-Swift](https://github.com/Trevon-Swift)  
 **Repository:** [SIEM-Homelab-Project-V2](https://github.com/Trevon-Swift/SIEM-Homelab-Project-V2)
 **Email:** [Trevon Swift](https://trevon.swift@protonmail.com)
