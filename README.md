@@ -1,281 +1,154 @@
 # Enterprise Security Monitoring & Threat Detection Laboratory
 
-![Project Status](https://img.shields.io/badge/Status-Complete-success)
-![Wazuh Version](https://img.shields.io/badge/Wazuh-4.14-blue)
-![Detection Rate](https://img.shields.io/badge/Detection%20Rate-100%25-brightgreen)
-![MITRE Techniques](https://img.shields.io/badge/MITRE%20Techniques-7+-orange)
+![Project Status](https://img.shields.io/badge/Status-Complete-success) ![Wazuh Version](https://img.shields.io/badge/Wazuh-4.14-blue) ![Detection Rate](https://img.shields.io/badge/Detection%20Rate-100%25-brightgreen) ![MITRE Techniques](https://img.shields.io/badge/MITRE%20Techniques-7%2B-orange)
 
 ---
 
 ## 📋 Project Overview
 
-This project demonstrates enterprise-grade Security Information and Event Management (SIEM) capabilities through a comprehensive homelab environment. Built from scratch using Wazuh SIEM, this lab showcases threat detection, security monitoring, log analysis, and incident response skills essential for SOC analyst and security engineering roles.
+This project demonstrates enterprise-grade Security Information and Event Management (SIEM) capabilities through a comprehensive homelab environment. Built from scratch using **Wazuh**, this lab showcases threat detection, security monitoring, log analysis, and incident response skills essential for SOC analyst and security engineering roles.
 
-**Achievement: 100% detection rate across 121+ simulated attack events**
-
-### Key Objectives
-
-- ✅ Deploy and configure enterprise SIEM platform (Wazuh 4.14)
-- ✅ Implement multi-platform security monitoring
-- ✅ Simulate real-world attack scenarios with penetration testing tools
-- ✅ Validate detection capabilities across MITRE ATT&CK framework
-- ✅ Develop custom detection rules and correlation logic
-- ✅ Document incident response procedures and threat hunting methodologies
-- ✅ Create professional security analysis reports
+The objective was to engineer a pipeline that ingests logs, detects anomalies, and maps real-world attacks to the **MITRE ATT&CK Framework**.
 
 ---
 
 ## 🏗️ Architecture
 
-### Infrastructure Components
 
-```
-┌─────────────────────────────────────────────────────────┐
-│                    Host Machine                         │
-│                  Windows + VirtualBox                   │
-│                                                         │
-│          ┌──────────────┐  ┌──────────────┐             │
-│          │   Wazuh      │  │  Kali Linux  │             │
-│          │   Manager    │◄─┤   (Agent)    │             │
-│          │  (Ubuntu)    │  │              │             │
-│          │  SIEM Core   │  │  Red Team    │             │ 
-│          │  192.168.1   │  │   Attack     │             │ 
-│          │  .102        │  │  Platform    │             │
-│          └──────────────┘  └──────────────┘             │
-│                 │                  │                    │
-│                 │                  │                    │
-│                 └──────────────────┘                    │
-│                     Monitoring &                        │
-│                  Attack Simulation                      │
-└─────────────────────────────────────────────────────────┘
-```
 
-### Virtual Machine Specifications
+### The Infrastructure
 
-| VM Name | Operating System | RAM | CPUs | Disk | Role | IP Address |
-|---------|-----------------|-----|------|------|------|------------|
-| Wazuh-Manager | Ubuntu Server 25.10 | 4 GB | 2 | 80 GB | SIEM Manager | 192.168.1.102 |
-| Kali-Linux | Kali Linux 2024.x | 4 GB | 2 | 80 GB | Attack Platform & Monitored Agent | Dynamic DHCP |
+- **SIEM Core:** Wazuh Manager (Ubuntu Server 25.10) - *Log aggregation & Correlation*
 
-**Network Configuration:** Bridged Adapter (VMs on host network segment)
+- **Endpoint/Target:** Kali Linux 2024.x - *Attacker & Monitored Agent*
+
+- **Virtualization:** Oracle VirtualBox - *Bridged Networking for full LAN visibility*
 
 ---
 
-## 🔧 Technologies & Tools
+## ⚙️ Configuration & Engineering
 
-### Core Platform
-- **SIEM Solution:** Wazuh 4.14 (Open-source SIEM and XDR platform)
-- **Virtualization:** Oracle VirtualBox 7.x
-- **Operating Systems:** Ubuntu Server 25.10, Kali Linux 2024.x
+This project mimics a production environment while optimized for rapid testing. Below are the core configuration details utilized.
 
-### Security Tools & Attack Simulation
-- **Penetration Testing:** Kali Linux (Nmap, Hydra, Netcat)
-- **Monitoring:** Wazuh agents, File Integrity Monitoring (FIM), Authentication tracking
-- **Analysis:** Wazuh dashboard, Custom detection rules, MITRE ATT&CK mapping
+### 1. Manager Configuration (`ossec.conf`)
 
-### Languages & Configuration
-- **Scripting:** Python, Bash
-- **Configuration:** XML (Wazuh rules), YAML (agent configs)
-- **Documentation:** Markdown, Technical writing
+- **Location:** `/var/ossec/etc/ossec.conf`
+
+- **Alert Level:** Set to `3` (Medium severity and above logged) to reduce noise.
+
+- **File Integrity Monitoring (FIM):**
+  - **Real-time Monitoring:** Enabled for critical paths.
+  - **Scan Frequency:** Adjusted to `1800` seconds (30 mins) for rapid lab testing.
+  - **Target Directories:** `/etc`, `/usr/bin`, `/sbin`, `/boot` (High-value targets for persistence).
+
+### 2. Agent Configuration (`kali-agent.conf`)
+
+- **Location:** `/var/ossec/etc/ossec.conf` (on Kali Agent)
+
+- **Log Forwarding:** Captures authentication logs (`/var/log/auth.log`) and system logs (`syslog`).
+
+- **System Inventory:** Enabled to track hardware, OS, network, and process changes on the endpoint.
+
+### 3. Implementation Logic
+
+- **Deployment:** All-in-one installation script for Manager; HTTP file server delivery for Agent (to bypass initial network isolation issues).
+
+- **Active Response:** Intentionally **disabled** for this lab to allow full execution of attack chains without automatic blocking, ensuring complete log data capture.
 
 ---
 
-## 🎯 Skills Demonstrated
+## 🛠️ Methodology: Manual Command Execution
 
-### Technical Competencies
+**Why Manual Commands Instead of Automated Scripts?**
 
-**SIEM Operations**
-- Enterprise SIEM deployment and configuration
-- Multi-platform agent management and monitoring
-- Real-time log analysis and event correlation
-- Alert triage and investigation workflows
-- 100% detection rate across tested attack vectors
+While automation (Ansible/Bash) is valuable, this project focuses on demonstrating **hands-on command-line proficiency** and the manual investigation workflows used by SOC analysts.
 
-**Threat Detection Engineering**
-- File Integrity Monitoring (FIM) configuration
-- Authentication monitoring and brute force detection
-- Privilege escalation attempt identification
-- Persistence mechanism detection
-- Command execution analysis
+**This approach demonstrates:**
 
-**Security Analysis**
-- Attack pattern recognition across MITRE ATT&CK framework
-- Log analysis and forensics
-- Incident timeline reconstruction
-- IOC (Indicators of Compromise) identification
-- Threat intelligence application
+- ✅ **Deep Understanding:** Proficiency with command syntax, parameters, and environment variables.
 
-**Red Team/Penetration Testing**
-- Attack simulation using industry-standard tools
-- Brute force credential attacks (Hydra)
-- Reconnaissance and enumeration techniques
-- Privilege escalation attempts
-- Persistence mechanism establishment
+- ✅ **Real-time Troubleshooting:** ability to adapt when services fail (e.g., debugging `systemctl` or permission errors manually).
 
-**System Administration**
-- Linux server deployment and hardening
-- Service management and troubleshooting
-- Network configuration and diagnostics
-- Virtual infrastructure management
+- ✅ **Tool Mastery:** Direct usage of `Hydra` for attacks and standard Linux utilities for system modification.
 
-### Professional Skills
+- ✅ **Analyst Workflow:** Simulating the manual "hunt" rather than relying on pre-canned scripts.
 
-- Systematic problem-solving and troubleshooting (resolved 7 major technical issues)
-- Comprehensive technical documentation (3 major documents, 121+ screenshots)
-- Security operations workflows and procedures
-- Incident response methodologies
-- Professional reporting and communication
-- MITRE ATT&CK framework application
+*(See **`configurations/commands-used.md`** for the full log of executed commands)*
+
+---
+
+## 🚀 Project Phases & Attack Simulation
+
+### Phase 1: Infrastructure Design
+
+Established the "Defense" zone. Migrated storage from external HDD to internal SSD to resolve I/O bottlenecks and configured Bridged Adapters to allow VM-to-VM communication.
+
+### Phase 2: Agent Deployment
+
+Established the "Target" zone. Deployed the Wazuh Agent to Kali Linux and verified encrypted connectivity (TCP 1514) to the Manager.
+
+### Phase 3: Threat Detection (MITRE ATT&CK)
+
+Executed live attacks to validate SIEM rules.
+
+#### 📊 Detection Capabilities Validated
+
+| Attack Type | Tool Used | MITRE ID | Wazuh Rule ID | Status |
+| --- | --- | --- | --- | --- |
+| **SSH Brute Force** | Hydra | **T1110** | `5710`, `5712`, `5720` | ✅ Detected |
+| **Persistence (Cron)** | Crontab | **T1053.003** | `550` (FIM) | ✅ Detected |
+| **Privilege Escalation** | Sudo | **T1548** | `5401`, `5402` | ✅ Detected |
+| **System Modification** | Systemd | **T1543.002** | `554` | ✅ Detected |
+
+---
+
+## 📸 Proof of Concept (Gallery)
+
+### 1. The Dashboard (Security Overview)
+
+![Dashboard View](Assets/Screenshots/Phase 3/Kali_Agent_Threat_Hunting_Overview.png) *A unified view of security events, agents, and system health.*
+
+### 2. Attack Detection (Brute Force/Persistence)
+
+![Attack Alert](Assets/Screenshots/Phase 3/Nmap_Triggered_Security_Events.png) *Wazuh correctly correlating multiple failed login attempts or unauthorized file changes into a high-severity alert.*
+
+### 3. Agent Deployment Success
+
+![Agent Status](Assets/Screenshots/Phase 2/Wazuh_Agent_Deployment_Kali_Linux.png) *Confirmation of successful agent enrollment and active status on the Kali Linux endpoint.*
 
 ---
 
 ## 📂 Repository Structure
 
-```
-├── 📁 Assets/
-│ └── 📁 Screenshots/
-├── 📁 Configurations/
-│ ├── README.md
-│ ├── commands-used.md
-│ ├── kali-agent.conf
-│ └── ossec.conf
-├── 📁 Documentation/
-│ ├── attack_scenarios_and_detection.md
-│ ├── troubleshooting_log.md
-│ └── troubleshooting_log_cont.md
-├── LICENSE
-└── README.md
+```markdown
+SIEM-Homelab-Project-V2/
+├── Assets/ # Visual evidence 
+│   └── Screenshots/
+├── Code/ # Configuration backups
+│   ├── ossec.conf # Manager config backup
+│   ├── kali-agent.conf # Agent config backup
+│   └── commands-used.md # Key manual commands executed
+├── Documentation/ # Deep dives and logs
+│   ├── Attack_Scenarios # Detailed attack walkthroughs
+│   └── Troubleshooting # Comprehensive error logs & fixes
+└── README.md # Project Overview (This file)
 ```
 
 ---
 
-## 🚀 Project Phases & Achievements
+## 💡 Key Takeaways & Professional Value
 
-### ✅ Phase 1: Foundation (Complete)
-**Duration:** Days 1-3 | **Status:** Complete
+- **Configuration Management:** Experience balancing "secure by default" settings with the need for custom tuning (e.g., FIM frequency).
 
-**Achievements:**
-- [x] Ubuntu Server 25.10 VM deployment on internal SSD
-- [x] Wazuh Manager 4.14 installation and configuration
-- [x] All services operational (manager, indexer, dashboard)
-- [x] Web dashboard access verified from Windows host
-- [x] Network connectivity validated (bridged adapter)
-- [x] Comprehensive troubleshooting documentation
+- **Detection Engineering:** Validated that default rulesets require tuning to avoid false positives/negatives.
 
-**Major Challenges Overcome:**
-1. Storage configuration issues (external HDD → internal SSD migration)
-2. Disk space allocation (50GB → 80GB expansion)
-3. Network adapter conflicts (dual adapter resolution)
-4. Wazuh indexer permission issues
-5. Admin credential management
-
-**Deliverable:** Operational SIEM manager ready for agent enrollment
-
----
-
-### ✅ Phase 2: Agent Deployment (Complete)
-**Duration:** Days 4-5 | **Status:** Complete
-
-**Achievements:**
-- [x] Kali Linux agent installation via HTTP file transfer
-- [x] Agent enrolled and reporting as "Active"
-- [x] Security events flowing to SIEM in real-time
-- [x] Dashboard showing agent details and system information
-- [x] Network troubleshooting (wget connectivity resolved)
-
-**Technical Solutions:**
-- Resolved dual network adapter configuration conflict
-- Implemented alternative agent deployment via HTTP server
-- Fixed wazuh-indexer service permission issues
-- Established reliable VM-to-VM communication
-
-**Deliverable:** Multi-platform monitoring infrastructure with Kali Linux reporting
-
----
-
-### ✅ Phase 3: Attack Simulation & Detection (Complete)
-**Duration:** Days 6-8 | **Status:** Complete
-
-**Attack Scenarios Executed:**
-
-**1. Authentication Brute Force Attacks**
-- 100+ failed SSH login attempts via Hydra
-- Non-existent user enumeration
-- Rapid connection attempts detected
-- **Detection Rate:** 100% (Rules 5710, 5712, 5720)
-
-**2. File Integrity Violations**
-- System file modifications (/etc/hosts, /etc/crontab)
-- Backdoor script creation
-- Permission change attempts on /etc/passwd
-- **Detection Rate:** 100% (Rules 550, 554, 82)
-
-**3. Privilege Escalation Attempts**
-- /etc/shadow access attempts
-- Failed sudo with wrong passwords
-- SUID binary enumeration
-- Sudoers file reconnaissance
-- **Detection Rate:** 100% (Rules 5401, 5402, 5403)
-
-**4. Persistence Mechanism Establishment**
-- Malicious cron job creation
-- Systemd service installation
-- Startup configuration modifications
-- **Detection Rate:** 100% (FIM alerts, Rules 550, 554)
-
-**5. Command Execution & Process Monitoring**
-- Reverse shell syntax attempts
-- Netcat listener establishment
-- Suspicious file downloads
-- Bash obfuscation techniques
-- **Detection Rate:** 100% (Command logging, process monitoring)
-
-**Deliverable:** Validated SIEM detection across MITRE ATT&CK framework
-
----
-
-## 📊 Detection Performance
-
-### Overall Statistics
-
-| Metric | Value |
-|--------|-------|
-| **Total Attack Events** | 121+ |
-| **Events Detected** | 121+ |
-| **Detection Rate** | 100% |
-| **Average Detection Time** | < 30 seconds |
-| **False Positives** | 0 (in controlled testing) |
-| **MITRE Techniques Covered** | 7+ |
-| **Alert Rules Triggered** | 15+ unique rules |
-
-### MITRE ATT&CK Coverage
-
-**Tactics & Techniques Detected:**
-
-| Tactic | Technique ID | Technique Name | Detection Status |
-|--------|--------------|----------------|------------------|
-| Initial Access | T1078 | Valid Accounts (brute force) | ✅ Detected |
-| Persistence | T1053.003 | Scheduled Task: Cron | ✅ Detected |
-| Persistence | T1543.002 | Systemd Service | ✅ Detected |
-| Privilege Escalation | T1548 | Abuse Elevation Control | ✅ Detected |
-| Defense Evasion | T1565.001 | Data Manipulation | ✅ Detected |
-| Credential Access | T1110 | Brute Force | ✅ Detected |
-| Discovery | T1087 | Account Discovery | ✅ Detected |
-
----
-
-## 🔗 Documentation & Evidence
-
-All detailed documentation, troubleshooting logs, and visual evidence (screenshots) are organized in the following directories:
-
-- **Documentation:** Detailed guides for each project phase and comprehensive attack scenario documentation.
-- **Assets/Screenshots:** All screenshots consistently named and categorized by project phase.
+- **Resilience:** The ability to troubleshoot complex infrastructure issues (Storage I/O, Network Bridging) is as critical as understanding the security tools themselves.
 
 ---
 
 ## 🤝 Contact
 
-**Author:** Trevon Swift  
+**Author:** Trevon Swift [LinkedIn](https://linkedin.com/in/trevon-swift-35477b65)] | [Portfolio](https://trevcyber-nw8mwnbm.manus.space/?code=SircLTT4QZepKyYWiSEdYd)
 **GitHub:** [Trevon-Swift](https://github.com/Trevon-Swift)  
 **Repository:** [SIEM-Homelab-Project-V2](https://github.com/Trevon-Swift/SIEM-Homelab-Project-V2)
 **Email:** [Trevon Swift](https://trevon.swift@protonmail.com)
