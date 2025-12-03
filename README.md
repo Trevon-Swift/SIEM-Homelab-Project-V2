@@ -74,7 +74,7 @@ While automation (Ansible/Bash) is valuable, this project focuses on demonstrati
 
 - ✅ **Analyst Workflow:** Simulating the manual "hunt" rather than relying on pre-canned scripts.
 
-*(See **`configurations/commands-used.md`** for the full log of executed commands)*
+*(See **`configurations/commands-used.md`** for key executed commands)*
 
 ---
 
@@ -151,9 +151,7 @@ SIEM-Homelab-Project-V2/
 
 **LinkedIn:** [Trevon Swift](https://linkedin.com/in/trevon-swift-35477b65) 
 
-**Portfolio:** [Trevon Swift](https://trevcyber-nw8mwnbm.manus.space/?code=SircLTT4QZepKyYWiSEdYd)
-
-**GitHub:** [Trevon-Swift](https://github.com/Trevon-Swift)  
+**Portfolio:** [Trevon Swift](https://trevcyber-nw8mwnbm.manus.space/?code=SircLTT4QZepKyYWiSEdYd)  
 
 **Repository:** [SIEM-Homelab-Project-V2](https://github.com/Trevon-Swift/SIEM-Homelab-Project-V2)
 
